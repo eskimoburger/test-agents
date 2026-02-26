@@ -1,4 +1,34 @@
-* {
+/* ── CSS custom properties ── */
+:root {
+  --bg: #f0f2f5;
+  --surface: #ffffff;
+  --surface-2: #f8f9fa;
+  --text: #111827;
+  --text-muted: #6b7280;
+  --border: #d1d5db;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+  --priority-low: #22c55e;
+  --priority-medium: #f59e0b;
+  --priority-high: #ef4444;
+}
+
+body.dark {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface-2: #334155;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border: #475569;
+  --accent: #818cf8;
+  --accent-hover: #6366f1;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Reset ── */
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -6,60 +36,137 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f0f2f5;
+  background: var(--bg);
+  color: var(--text);
   min-height: 100vh;
   display: flex;
   justify-content: center;
   padding: 40px 16px;
+  transition: background 0.2s, color 0.2s;
 }
 
+/* ── Dark mode toggle (fixed) ── */
+.dark-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+/* ── Container ── */
 .container {
   width: 100%;
-  max-width: 480px;
+  max-width: 560px;
 }
 
 h1 {
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 24px;
-  color: #1a1a2e;
+  color: var(--text);
 }
 
+/* ── Add form ── */
 .add-form {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.add-row-1 {
   display: flex;
   gap: 8px;
-  margin-bottom: 24px;
 }
 
-.add-form input {
+.add-row-2 {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.add-form input,
+.add-form select {
   flex: 1;
-  padding: 10px 14px;
-  border: 1px solid #d1d5db;
+  min-width: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  background: var(--surface-2);
+  color: var(--text);
   outline: none;
   transition: border-color 0.2s;
 }
 
-.add-form input:focus {
-  border-color: #6366f1;
+.add-form input:focus,
+.add-form select:focus {
+  border-color: var(--accent);
 }
 
-.add-form button {
-  padding: 10px 20px;
-  background: #6366f1;
+.add-form button[type="submit"] {
+  padding: 9px 20px;
+  background: var(--accent);
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
+  white-space: nowrap;
   transition: background 0.2s;
 }
 
-.add-form button:hover {
-  background: #4f46e5;
+.add-form button[type="submit"]:hover {
+  background: var(--accent-hover);
 }
 
+/* ── Filter bar ── */
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-bar input,
+.filter-bar select {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 120px;
+}
+
+.filter-bar input:focus,
+.filter-bar select:focus {
+  border-color: var(--accent);
+}
+
+/* ── Todo list ── */
 .todo-list {
   list-style: none;
   display: flex;
@@ -69,46 +176,160 @@ h1 {
 
 .todo-list li {
   display: flex;
-  align-items: center;
-  background: white;
-  border-radius: 8px;
-  padding: 12px 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  gap: 12px;
+  align-items: flex-start;
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow);
+  gap: 10px;
+  border: 2px solid transparent;
+  transition: border-color 0.15s, background 0.2s;
+  cursor: default;
 }
 
-.todo-list li span {
-  flex: 1;
-  cursor: pointer;
-  font-size: 1rem;
-  color: #111827;
+.todo-list li.drag-over {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+
+/* ── Drag handle ── */
+.drag-handle {
+  color: var(--text-muted);
+  cursor: grab;
+  font-size: 1.1rem;
+  padding-top: 2px;
+  flex-shrink: 0;
   user-select: none;
 }
 
-.todo-list li.completed span {
-  text-decoration: line-through;
-  color: #9ca3af;
+.drag-handle:active {
+  cursor: grabbing;
 }
 
+/* ── Checkbox ── */
+.todo-list input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  cursor: pointer;
+  accent-color: var(--accent);
+  margin-top: 3px;
+}
+
+/* ── Todo body ── */
+.todo-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.todo-text {
+  font-size: 1rem;
+  color: var(--text);
+  cursor: text;
+  word-break: break-word;
+}
+
+.completed .todo-text {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* ── Inline edit ── */
+.edit-input {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  font-size: 1rem;
+  background: var(--surface-2);
+  color: var(--text);
+  outline: none;
+}
+
+/* ── Metadata row ── */
+.todo-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ── Priority badges ── */
+.priority-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: white;
+}
+
+.priority-low    { background: var(--priority-low); }
+.priority-medium { background: var(--priority-medium); }
+.priority-high   { background: var(--priority-high); }
+
+/* ── Category chips ── */
+.category-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+/* ── Due date ── */
+.due-date {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.due-date.overdue {
+  color: var(--priority-high);
+  font-weight: 600;
+}
+
+/* ── Delete button ── */
 .delete-btn {
   background: none;
   border: none;
-  color: #d1d5db;
+  color: var(--border);
   font-size: 1rem;
   cursor: pointer;
   padding: 2px 6px;
   border-radius: 4px;
   transition: color 0.2s, background 0.2s;
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
 .delete-btn:hover {
-  color: #ef4444;
+  color: var(--priority-high);
   background: #fee2e2;
 }
 
+body.dark .delete-btn:hover {
+  background: #3b1111;
+}
+
+/* ── Empty state ── */
 .empty {
   text-align: center;
-  color: #9ca3af;
+  color: var(--text-muted);
   margin-top: 40px;
   font-size: 0.95rem;
+}
+
+/* ── Footer stats ── */
+.footer-stats {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 20px;
 }
