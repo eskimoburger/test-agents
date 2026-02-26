@@ -25,28 +25,19 @@ function isOverdue(ts: number | null): boolean {
 export default function App() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("darkMode") === "1");
-
-  // Add form state
   const [input, setInput] = useState("");
   const [newPriority, setNewPriority] = useState<"low" | "medium" | "high">("medium");
   const [newCategory, setNewCategory] = useState("");
   const [newDueDate, setNewDueDate] = useState("");
-
-  // Search / filter
   const [searchQuery, setSearchQuery] = useState("");
   const [filterPriority, setFilterPriority] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
-
-  // Inline edit
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
-
-  // Drag state (ref to avoid re-renders)
   const dragSourceId = useRef<number | null>(null);
   const [dragOverId, setDragOverId] = useState<number | null>(null);
 
-  // Dark mode effect
   useEffect(() => {
     document.body.classList.toggle("dark", darkMode);
     localStorage.setItem("darkMode", darkMode ? "1" : "0");
@@ -56,28 +47,23 @@ export default function App() {
     fetch(API).then((r) => r.json()).then(setTodos);
   }, []);
 
-  // Derived
   const allCategories = useMemo(
     () => Array.from(new Set(todos.map((t) => t.category).filter(Boolean))) as string[],
     [todos]
   );
 
-  const filteredTodos = useMemo(() => {
-    return todos.filter((t) => {
-      if (searchQuery && !t.text.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-      if (filterPriority && t.priority !== filterPriority) return false;
-      if (filterCategory && t.category !== filterCategory) return false;
-      if (filterStatus === "active" && t.completed) return false;
-      if (filterStatus === "done" && !t.completed) return false;
-      return true;
-    });
-  }, [todos, searchQuery, filterPriority, filterCategory, filterStatus]);
+  const filteredTodos = useMemo(() => todos.filter((t) => {
+    if (searchQuery && !t.text.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (filterPriority && t.priority !== filterPriority) return false;
+    if (filterCategory && t.category !== filterCategory) return false;
+    if (filterStatus === "active" && t.completed) return false;
+    if (filterStatus === "done" && !t.completed) return false;
+    return true;
+  }), [todos, searchQuery, filterPriority, filterCategory, filterStatus]);
 
-  // Stats
   const remaining = todos.filter((t) => !t.completed).length;
   const done = todos.filter((t) => t.completed).length;
 
-  // --- Actions ---
   async function addTodo(e: FormEvent) {
     e.preventDefault();
     const text = input.trim();
@@ -90,10 +76,7 @@ export default function App() {
     });
     const todo = await res.json();
     setTodos((prev) => [...prev, todo]);
-    setInput("");
-    setNewCategory("");
-    setNewDueDate("");
-    setNewPriority("medium");
+    setInput(""); setNewCategory(""); setNewDueDate(""); setNewPriority("medium");
   }
 
   async function toggleTodo(id: number) {
@@ -107,10 +90,7 @@ export default function App() {
     setTodos((prev) => prev.filter((t) => t.id !== id));
   }
 
-  function startEdit(todo: Todo) {
-    setEditingId(todo.id);
-    setEditText(todo.text);
-  }
+  function startEdit(todo: Todo) { setEditingId(todo.id); setEditText(todo.text); }
 
   async function saveEdit(id: number) {
     const text = editText.trim();
@@ -125,37 +105,21 @@ export default function App() {
     setEditingId(null);
   }
 
-  function cancelEdit() {
-    setEditingId(null);
-    setEditText("");
-  }
+  function cancelEdit() { setEditingId(null); setEditText(""); }
 
-  // --- Drag handlers ---
-  function onDragStart(id: number) {
-    dragSourceId.current = id;
-  }
-
-  function onDragOver(e: React.DragEvent, id: number) {
-    e.preventDefault();
-    setDragOverId(id);
-  }
+  function onDragStart(id: number) { dragSourceId.current = id; }
+  function onDragOver(e: React.DragEvent, id: number) { e.preventDefault(); setDragOverId(id); }
 
   async function onDrop(targetId: number) {
     const sourceId = dragSourceId.current;
-    if (sourceId === null || sourceId === targetId) {
-      dragSourceId.current = null;
-      setDragOverId(null);
-      return;
-    }
-    // Reorder in state
+    if (sourceId === null || sourceId === targetId) { dragSourceId.current = null; setDragOverId(null); return; }
     const newOrder = [...todos];
     const fromIdx = newOrder.findIndex((t) => t.id === sourceId);
     const toIdx = newOrder.findIndex((t) => t.id === targetId);
     const [moved] = newOrder.splice(fromIdx, 1);
     newOrder.splice(toIdx, 0, moved);
     setTodos(newOrder);
-    dragSourceId.current = null;
-    setDragOverId(null);
+    dragSourceId.current = null; setDragOverId(null);
     await fetch(`${API}/reorder`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -165,94 +129,72 @@ export default function App() {
 
   return (
     <>
-      {/* Dark mode toggle */}
-      <button className="dark-toggle" onClick={() => setDarkMode((d) => !d)} title="Toggle dark mode">
-        {darkMode ? "☀️" : "🌙"}
+      <button className="dark-toggle" onClick={() => setDarkMode((d) => !d)} title="Toggle theme">
+        {darkMode ? "◑" : "◐"}
       </button>
 
-      <div className="container">
-        <h1>Todo App</h1>
+      <div className="app">
+        <header className="app-header">
+          <span className="header-label">personal workspace</span>
+          <h1 className="app-title">The<em> List.</em></h1>
+          <div className="header-rule" />
+        </header>
 
-        {/* Add form */}
         <form onSubmit={addTodo} className="add-form">
-          <div className="add-row-1">
+          <div className="add-primary">
             <input
+              className="text-input"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="What needs to be done?"
+              placeholder="Add a new task…"
             />
-            <button type="submit">Add</button>
+            <button type="submit" className="add-btn">Add</button>
           </div>
-          <div className="add-row-2">
-            <select value={newPriority} onChange={(e) => setNewPriority(e.target.value as "low" | "medium" | "high")}>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
+          <div className="add-secondary">
+            <select className="meta-select" value={newPriority} onChange={(e) => setNewPriority(e.target.value as "low" | "medium" | "high")}>
+              <option value="low">↓ Low</option>
+              <option value="medium">→ Medium</option>
+              <option value="high">↑ High</option>
             </select>
-            <input
-              value={newCategory}
-              onChange={(e) => setNewCategory(e.target.value)}
-              placeholder="Category (optional)"
-            />
-            <input
-              type="date"
-              value={newDueDate}
-              onChange={(e) => setNewDueDate(e.target.value)}
-            />
+            <input className="meta-input" value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder="Category" />
+            <input className="meta-input" type="date" value={newDueDate} onChange={(e) => setNewDueDate(e.target.value)} />
           </div>
         </form>
 
-        {/* Search / filter bar */}
         <div className="filter-bar">
-          <input
-            className="search-input"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search..."
-          />
-          <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}>
+          <input className="search-input" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search tasks…" />
+          <select className="filter-select" value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}>
             <option value="">All priorities</option>
             <option value="low">Low</option>
             <option value="medium">Medium</option>
             <option value="high">High</option>
           </select>
-          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
+          <select className="filter-select" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
             <option value="">All categories</option>
             {allCategories.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
-          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+          <select className="filter-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
             <option value="">All</option>
             <option value="active">Active</option>
             <option value="done">Done</option>
           </select>
         </div>
 
-        {/* Todo list */}
         <ul className="todo-list">
-          {filteredTodos.map((todo) => (
+          {filteredTodos.map((todo, idx) => (
             <li
               key={todo.id}
-              className={[
-                todo.completed ? "completed" : "",
-                dragOverId === todo.id ? "drag-over" : "",
-              ].join(" ").trim()}
+              className={["todo-item", todo.completed ? "is-done" : "", dragOverId === todo.id ? "is-drag-over" : ""].filter(Boolean).join(" ")}
+              data-priority={todo.priority}
               draggable
               onDragStart={() => onDragStart(todo.id)}
               onDragOver={(e) => onDragOver(e, todo.id)}
               onDrop={() => onDrop(todo.id)}
               onDragLeave={() => setDragOverId(null)}
             >
-              {/* Drag handle */}
+              <span className="item-index">{String(idx + 1).padStart(2, "0")}</span>
               <span className="drag-handle" title="Drag to reorder">⠿</span>
-
-              {/* Checkbox */}
-              <input
-                type="checkbox"
-                checked={!!todo.completed}
-                onChange={() => toggleTodo(todo.id)}
-              />
-
-              {/* Text / inline edit */}
+              <input type="checkbox" className="todo-checkbox" checked={!!todo.completed} onChange={() => toggleTodo(todo.id)} />
               <div className="todo-body">
                 {editingId === todo.id ? (
                   <input
@@ -267,34 +209,36 @@ export default function App() {
                     }}
                   />
                 ) : (
-                  <span className="todo-text" onDoubleClick={() => startEdit(todo)}>
-                    {todo.text}
-                  </span>
+                  <span className="todo-text" onDoubleClick={() => startEdit(todo)}>{todo.text}</span>
                 )}
                 <div className="todo-meta">
-                  <span className={`priority-badge priority-${todo.priority}`}>{todo.priority}</span>
-                  {todo.category && <span className="category-chip">{todo.category}</span>}
+                  <span className={`priority-tag priority-${todo.priority}`}>{todo.priority}</span>
+                  {todo.category && <span className="category-tag">{todo.category}</span>}
                   {todo.due_date && (
-                    <span className={`due-date${isOverdue(todo.due_date) && !todo.completed ? " overdue" : ""}`}>
-                      📅 {formatDate(todo.due_date)}
+                    <span className={`due-tag${isOverdue(todo.due_date) && !todo.completed ? " is-overdue" : ""}`}>
+                      {formatDate(todo.due_date)}
                     </span>
                   )}
                 </div>
               </div>
-
-              {/* Delete */}
-              <button onClick={() => deleteTodo(todo.id)} className="delete-btn">✕</button>
+              <button onClick={() => deleteTodo(todo.id)} className="delete-btn" title="Delete">×</button>
             </li>
           ))}
         </ul>
 
         {filteredTodos.length === 0 && (
-          <p className="empty">{todos.length === 0 ? "No todos yet. Add one above!" : "No results match your filters."}</p>
+          <div className="empty-state">
+            <span className="empty-glyph">◇</span>
+            <p>{todos.length === 0 ? "Nothing here yet." : "No results."}</p>
+          </div>
         )}
 
-        {/* Footer */}
         {todos.length > 0 && (
-          <p className="footer-stats">{remaining} remaining · {done} done</p>
+          <footer className="app-footer">
+            <span>{remaining} remaining</span>
+            <span className="footer-sep">·</span>
+            <span>{done} done</span>
+          </footer>
         )}
       </div>
     </>
