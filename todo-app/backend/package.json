@@ -2,6 +2,7 @@
   "name": "todo-backend",
   "version": "1.0.0",
   "type": "module",
+  "packageManager": "bun@1.3.10-canary.109+b2d8504a0",
   "scripts": {
     "dev": "bun run --watch index.ts",
     "start": "bun run index.ts"
